@@ -40,13 +40,16 @@
   };
 
   // TRACKPAD ON LEFT SIDE
-  &pro_micro_i2c {
+&pro_micro_i2c {
       status = "okay";
 
       tps43: trackpad@74 {
           compatible = "azoteq,iqs5xx";
           reg = <0x74>;
           status = "okay";
+
+          // REQUIRED: Ready pin
+          rdy-gpios = <&gpio1 1 GPIO_ACTIVE_HIGH>;    // P1.01
 
           one-finger-tap;
           two-finger-tap;
@@ -63,6 +66,7 @@
           switch-xy;
       };
   };
+
 
   / {
       chosen {
