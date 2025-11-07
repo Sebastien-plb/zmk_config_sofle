@@ -39,7 +39,7 @@
       };
   };
 
-// TRACKPAD ON LEFT SIDE
+ // TRACKPAD ON LEFT SIDE
   &pro_micro_i2c {
       status = "okay";
 
@@ -51,8 +51,8 @@
           // RDY pin - connected to P1.01
           rdy-gpios = <&gpio1 1 GPIO_ACTIVE_HIGH>;     // P1.01
 
-          // RST pin - connected to P1.02
-          reset-gpios = <&gpio1 2 GPIO_ACTIVE_LOW>;    // P1.02
+          // RST pin - connected to P0.22
+          reset-gpios = <&gpio0 22 GPIO_ACTIVE_LOW>;   // P0.22
 
           one-finger-tap;
           two-finger-tap;
@@ -80,5 +80,7 @@
           device = <&tps43>;
       };
   };
+
+
 
 
