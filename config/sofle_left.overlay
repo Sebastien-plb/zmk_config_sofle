@@ -40,45 +40,47 @@
   };
 
  // TRACKPAD ON LEFT SIDE
-  &pro_micro_i2c {
-      status = "okay";
 
-      tps43: trackpad@74 {
-          compatible = "azoteq,iqs5xx";
-          reg = <0x74>;
-          status = "okay";
 
-          // RDY pin - connected to P1.01
-          rdy-gpios = <&gpio1 1 GPIO_ACTIVE_HIGH>;     // P1.01
+&pro_micro_i2c {
+    status = "okay";
+    tps43: iqs5xx@74 {
+        status = "okay";
+        compatible = "azoteq,iqs5xx";
+        reg = <0x74>;
 
-          // RST pin - connected to P0.22
-          reset-gpios = <&gpio0 22 GPIO_ACTIVE_LOW>;   // P0.22
+        reset-gpios = <&gpio0 22 GPIO_ACTIVE_LOW>; 
+        rdy-gpios = <&gpio1 1 GPIO_ACTIVE_HIGH>;
 
-          one-finger-tap;
-          two-finger-tap;
-          press-and-hold;
-          press-and-hold-time = <250>;
+        /*
+         * Potentially non-exhaustive list of configuration options.
+         * See: dts/bindings/input/azoteq,iqs5xx-common.yaml for a full list.
+         */
+        one-finger-tap;
+        press-and-hold;
+        press-and-hold-time = <250>;
+        two-finger-tap;
 
-          scroll;
-          natural-scroll-y;
-          natural-scroll-x;
+        scroll;
+        natural-scroll-x;
 
-          bottom-beta = <5>;
-          stationary-threshold = <5>;
+        bottom-beta = <15>;
+        stationary-threshold = <5>;
 
-          switch-xy;
-      };
-  };
+        switch-xy;
+    };
+};
+
+&tps43_split {
+    device = <&tps43>;
+
+};
 
   / {
       chosen {
           zmk,underglow = &led_strip;
       };
 
-      trackpad_listener {
-          compatible = "zmk,input-listener";
-          device = <&tps43>;
-      };
   };
 
 
