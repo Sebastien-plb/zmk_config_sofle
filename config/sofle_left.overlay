@@ -71,10 +71,6 @@
     };
 };
 
-&tps43_split {
-    device = <&tps43>;
-
-};
 
   / {
       chosen {
