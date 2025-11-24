@@ -41,7 +41,12 @@
 
  // TRACKPAD ON LEFT SIDE
 
-
+/ {
+    tps43_input: tps43_input {
+        compatible = "zmk,input-listener";
+        device = <&tps43>;
+    };
+};
 &pro_micro_i2c {
     status = "okay";
     tps43: iqs5xx@74 {
