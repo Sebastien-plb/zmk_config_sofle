@@ -4,8 +4,8 @@ manifest:
       url-base: https://github.com/zmkfirmware
     - name: AYM1607
       url-base: https://github.com/AYM1607
-    - name: TooManyLs
-      url-base: https://github.com/TooManyLs
+   # - name: TooManyLs
+  #  url-base: https://github.com/TooManyLs
   projects:
     - name: zmk
       remote: zmkfirmware
