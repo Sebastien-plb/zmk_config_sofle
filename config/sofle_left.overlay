@@ -1,106 +1,100 @@
 #include <dt-bindings/led/led.h>
 
-  &pinctrl {
-      // SPI for RGB LEDs
-      spi3_default: spi3_default {
-          group1 {
-              psels = <NRF_PSEL(SPIM_MOSI, 0, 6)>;
-          };
-      };
+&pinctrl {
+    spi3_default: spi3_default {
+        group1 {
+            psels = <NRF_PSEL(SPIM_MOSI, 0, 6)>;
+        };
+    };
 
-      spi3_sleep: spi3_sleep {
-          group1 {
-              psels = <NRF_PSEL(SPIM_MOSI, 0, 6)>;
-              low-power-enable;
-          };
-      };
+    spi3_sleep: spi3_sleep {
+        group1 {
+            psels = <NRF_PSEL(SPIM_MOSI, 0, 6)>;
+            low-power-enable;
+        };
+    };
 
-      // ✅ ADD THIS: I2C with internal pullups enabled
-      i2c0_default: i2c0_default {
-          group1 {
-              psels = <NRF_PSEL(TWIM_SDA, 0, 20)>,
-                      <NRF_PSEL(TWIM_SCL, 0, 17)>;
-              bias-pull-up;  // 👈 This enables internal pullups!
-          };
-      };
+    i2c0_default: i2c0_default {
+        group1 {
+            psels = <NRF_PSEL(TWIM_SDA, 0, 20)>,
+                    <NRF_PSEL(TWIM_SCL, 0, 17)>;
+            bias-pull-up;
+        };
+    };
 
-      i2c0_sleep: i2c0_sleep {
-          group1 {
-              psels = <NRF_PSEL(TWIM_SDA, 0, 20)>,
-                      <NRF_PSEL(TWIM_SCL, 0, 17)>;
-              low-power-enable;
-              bias-pull-up;  // 👈 Keep pullups in sleep mode too
-          };
-      };
-  };
+    i2c0_sleep: i2c0_sleep {
+        group1 {
+            psels = <NRF_PSEL(TWIM_SDA, 0, 20)>,
+                    <NRF_PSEL(TWIM_SCL, 0, 17)>;
+            low-power-enable;
+            bias-pull-up;
+        };
+    };
+};
 
-  &spi3 {
-      compatible = "nordic,nrf-spim";
-      status = "okay";
+&spi3 {
+    compatible = "nordic,nrf-spim";
+    status = "okay";
 
-      pinctrl-0 = <&spi3_default>;
-      pinctrl-1 = <&spi3_sleep>;
-      pinctrl-names = "default", "sleep";
+    pinctrl-0 = <&spi3_default>;
+    pinctrl-1 = <&spi3_sleep>;
+    pinctrl-names = "default", "sleep";
 
-      led_strip: ws2812@0 {
-          compatible = "worldsemi,ws2812-spi";
-          label = "WS2812";
+    led_strip: ws2812@0 {
+        compatible = "worldsemi,ws2812-spi";
+        label = "WS2812";
 
-          reg = <0>;
-          spi-max-frequency = <4000000>;
+        reg = <0>;
+        spi-max-frequency = <4000000>;
 
-          chain-length = <29>;
-          spi-one-frame = <0x70>;
-          spi-zero-frame = <0x40>;
+        chain-length = <29>;
+        spi-one-frame = <0x70>;
+        spi-zero-frame = <0x40>;
 
-          color-mapping = <LED_COLOR_ID_GREEN LED_COLOR_ID_RED
-  LED_COLOR_ID_BLUE>;
-      };
-  };
+        color-mapping = <LED_COLOR_ID_GREEN LED_COLOR_ID_RED LED_COLOR_ID_BLUE>;
+    };
+};
 
-  // TRACKPAD ON LEFT SIDE
-  / {
-      tps43_input: tps43_input {
-          compatible = "zmk,input-listener";
-          device = <&tps43>;
-      };
-  };
+/ {
+    tps43_input: tps43_input {
+        compatible = "zmk,input-listener";
+        device = <&tps43>;
+    };
+};
 
-  &pro_micro_i2c {
-      status = "okay";
-      clock-frequency = <I2C_BITRATE_STANDARD>;  // ✅ ADD THIS: Use 100kHz 
-  (slower = more reliable)
+&pro_micro_i2c {
+    status = "okay";
+    clock-frequency = <I2C_BITRATE_STANDARD>;
 
-      // ✅ ADD THIS: Reference the pinctrl configs with pullups
-      pinctrl-0 = <&i2c0_default>;
-      pinctrl-1 = <&i2c0_sleep>;
-      pinctrl-names = "default", "sleep";
+    pinctrl-0 = <&i2c0_default>;
+    pinctrl-1 = <&i2c0_sleep>;
+    pinctrl-names = "default", "sleep";
 
-      tps43: iqs5xx@74 {
-          status = "okay";
-          compatible = "azoteq,iqs5xx";
-          reg = <0x74>;
+    tps43: iqs5xx@74 {
+        status = "okay";
+        compatible = "azoteq,iqs5xx";
+        reg = <0x74>;
 
-          reset-gpios = <&pro_micro 0 GPIO_ACTIVE_LOW>;
-          rdy-gpios = <&pro_micro 4 GPIO_ACTIVE_HIGH>;
+        reset-gpios = <&pro_micro 0 GPIO_ACTIVE_LOW>;
+        rdy-gpios = <&pro_micro 4 GPIO_ACTIVE_HIGH>;
 
-          one-finger-tap;
-          press-and-hold;
-          press-and-hold-time = <250>;
-          two-finger-tap;
+        one-finger-tap;
+        press-and-hold;
+        press-and-hold-time = <250>;
+        two-finger-tap;
 
-          scroll;
-          natural-scroll-x;
+        scroll;
+        natural-scroll-x;
 
-          bottom-beta = <15>;
-          stationary-threshold = <5>;
+        bottom-beta = <15>;
+        stationary-threshold = <5>;
 
-          switch-xy;
-      };
-  };
+        switch-xy;
+    };
+};
 
-  / {
-      chosen {
-          zmk,underglow = &led_strip;
-      };
-  };
+/ {
+    chosen {
+        zmk,underglow = &led_strip;
+    };
+};
