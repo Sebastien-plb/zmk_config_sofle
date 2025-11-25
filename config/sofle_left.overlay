@@ -1,6 +1,7 @@
 #include <dt-bindings/led/led.h>
 
   &pinctrl {
+      // SPI for RGB LEDs
       spi3_default: spi3_default {
           group1 {
               psels = <NRF_PSEL(SPIM_MOSI, 0, 6)>;
@@ -11,6 +12,24 @@
           group1 {
               psels = <NRF_PSEL(SPIM_MOSI, 0, 6)>;
               low-power-enable;
+          };
+      };
+
+      // ✅ ADD THIS: I2C with internal pullups enabled
+      i2c0_default: i2c0_default {
+          group1 {
+              psels = <NRF_PSEL(TWIM_SDA, 0, 20)>,
+                      <NRF_PSEL(TWIM_SCL, 0, 17)>;
+              bias-pull-up;  // 👈 This enables internal pullups!
+          };
+      };
+
+      i2c0_sleep: i2c0_sleep {
+          group1 {
+              psels = <NRF_PSEL(TWIM_SDA, 0, 20)>,
+                      <NRF_PSEL(TWIM_SCL, 0, 17)>;
+              low-power-enable;
+              bias-pull-up;  // 👈 Keep pullups in sleep mode too
           };
       };
   };
@@ -39,51 +58,49 @@
       };
   };
 
- // TRACKPAD ON LEFT SIDE
+  // TRACKPAD ON LEFT SIDE
+  / {
+      tps43_input: tps43_input {
+          compatible = "zmk,input-listener";
+          device = <&tps43>;
+      };
+  };
 
-/ {
-    tps43_input: tps43_input {
-        compatible = "zmk,input-listener";
-        device = <&tps43>;
-    };
-};
-&pro_micro_i2c {
-    status = "okay";
-    tps43: iqs5xx@74 {
-        status = "okay";
-        compatible = "azoteq,iqs5xx";
-        reg = <0x74>;
+  &pro_micro_i2c {
+      status = "okay";
+      clock-frequency = <I2C_BITRATE_STANDARD>;  // ✅ ADD THIS: Use 100kHz 
+  (slower = more reliable)
 
-        reset-gpios = <&pro_micro 0 GPIO_ACTIVE_LOW>;
-        rdy-gpios = <&pro_micro 4 GPIO_ACTIVE_HIGH>;
+      // ✅ ADD THIS: Reference the pinctrl configs with pullups
+      pinctrl-0 = <&i2c0_default>;
+      pinctrl-1 = <&i2c0_sleep>;
+      pinctrl-names = "default", "sleep";
 
-        /*
-         * Potentially non-exhaustive list of configuration options.
-         * See: dts/bindings/input/azoteq,iqs5xx-common.yaml for a full list.
-         */
-        one-finger-tap;
-        press-and-hold;
-        press-and-hold-time = <250>;
-        two-finger-tap;
+      tps43: iqs5xx@74 {
+          status = "okay";
+          compatible = "azoteq,iqs5xx";
+          reg = <0x74>;
 
-        scroll;
-        natural-scroll-x;
+          reset-gpios = <&pro_micro 0 GPIO_ACTIVE_LOW>;
+          rdy-gpios = <&pro_micro 4 GPIO_ACTIVE_HIGH>;
 
-        bottom-beta = <15>;
-        stationary-threshold = <5>;
+          one-finger-tap;
+          press-and-hold;
+          press-and-hold-time = <250>;
+          two-finger-tap;
 
-        switch-xy;
-    };
-};
+          scroll;
+          natural-scroll-x;
 
+          bottom-beta = <15>;
+          stationary-threshold = <5>;
+
+          switch-xy;
+      };
+  };
 
   / {
       chosen {
           zmk,underglow = &led_strip;
       };
-
   };
-
-
-
-
