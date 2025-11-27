@@ -1,9 +1,16 @@
 #include <dt-bindings/led/led.h>
 
-nice_view_spi: &pro_micro_spi {
+&pro_micro_spi {
     status = "okay";
+    compatible = "nordic,nrf-spim";
+    pinctrl-0 = <&spi0_default>;
+    pinctrl-1 = <&spi0_sleep>;
+    /* This sets your specific CS pin P1.07 */
     cs-gpios = <&gpio1 7 GPIO_ACTIVE_HIGH>;
 };
+
+/* This creates the label 'nice_view_spi' so the shield can find it */
+nice_view_spi: &pro_micro_spi { };
 
 &pinctrl {
     spi3_default: spi3_default {
