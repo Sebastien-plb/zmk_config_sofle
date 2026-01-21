@@ -1,18 +1,20 @@
 #include <dt-bindings/led/led.h>
 
-/* --- I2C BUS (Trackpad + OLED) --- */
+/* --- I2C BUS: OLED & TRACKPAD --- */
 &pro_micro_i2c {
     status = "okay";
 
-    /* Device 1: Trackpad */
+    /* 1. Trackpad (Address 0x74) */
     tps43: iqs5xx@74 {
         compatible = "azoteq,iqs5xx";
         status = "okay";
         reg = <0x74>;
 
-        /* Your specific trackpad tuning */
+        /* Interrupt & Ready Pins */
         reset-gpios = <&pro_micro 4 GPIO_ACTIVE_LOW>;
         rdy-gpios = <&pro_micro 0 GPIO_ACTIVE_HIGH>;
+
+        /* Settings */
         one-finger-tap;
         press-and-hold;
         press-and-hold-time = <250>;
@@ -24,33 +26,29 @@
         switch-xy;
     };
 
-    /* Device 2: OLED Display */
+    /* 2. OLED Display (Address 0x3C) */
     oled: ssd1306@3c {
         compatible = "solomon,ssd1306fb";
-        reg = <0x3c>; /* Standard address for 128x32 */
+        reg = <0x3c>;
         width = <128>;
         height = <32>;
         
-        /* Standard orientation settings */
+        /* Orientation */
         segment-offset = <0>;
         page-offset = <0>;
         display-offset = <0>;
         multiplex-ratio = <31>;
-        segment-remap;
-        com-invdir;
+        segment-remap;   /* Remove if upside down */
+        com-invdir;      /* Remove if upside down */
         com-sequential;
         prechargep = <0x22>;
     };
 };
 
-/* --- LED STRIP (SPI3) --- */
+/* --- LEDS (SPI3) --- */
 &pinctrl {
-    spi3_default: spi3_default {
-        group1 { psels = <NRF_PSEL(SPIM_MOSI, 0, 6)>; };
-    };
-    spi3_sleep: spi3_sleep {
-        group1 { psels = <NRF_PSEL(SPIM_MOSI, 0, 6)>; low-power-enable; };
-    };
+    spi3_default: spi3_default { group1 { psels = <NRF_PSEL(SPIM_MOSI, 0, 6)>; }; };
+    spi3_sleep: spi3_sleep { group1 { psels = <NRF_PSEL(SPIM_MOSI, 0, 6)>; low-power-enable; }; };
 };
 
 &spi3 {
@@ -79,6 +77,6 @@
 
     chosen {
         zmk,underglow = &led_strip;
-        zmk,display = &oled; /* Point ZMK to the OLED node */
+        zmk,display = &oled;
     };
 };
