@@ -1,95 +1,84 @@
 #include <dt-bindings/led/led.h>
 
-&pro_micro_spi {
+/* --- I2C BUS (Trackpad + OLED) --- */
+&pro_micro_i2c {
     status = "okay";
-    compatible = "nordic,nrf-spim";
-    
-    /* YOUR CUSTOM CS PIN: P1.07 */
-    cs-gpios = <&gpio1 7 GPIO_ACTIVE_HIGH>;
 
-    nice_view: ls0xx@0 {
-        compatible = "sharp,ls0xx";
-        spi-max-frequency = <1000000>;
-        reg = <0>;
-        width = <160>;
-        height = <68>;
+    /* Device 1: Trackpad */
+    tps43: iqs5xx@74 {
+        compatible = "azoteq,iqs5xx";
+        status = "okay";
+        reg = <0x74>;
+
+        /* Your specific trackpad tuning */
+        reset-gpios = <&pro_micro 4 GPIO_ACTIVE_LOW>;
+        rdy-gpios = <&pro_micro 0 GPIO_ACTIVE_HIGH>;
+        one-finger-tap;
+        press-and-hold;
+        press-and-hold-time = <250>;
+        two-finger-tap;
+        scroll;
+        natural-scroll-x;
+        bottom-beta = <15>;
+        stationary-threshold = <5>;
+        switch-xy;
+    };
+
+    /* Device 2: OLED Display */
+    oled: ssd1306@3c {
+        compatible = "solomon,ssd1306fb";
+        reg = <0x3c>; /* Standard address for 128x32 */
+        width = <128>;
+        height = <32>;
+        
+        /* Standard orientation settings */
+        segment-offset = <0>;
+        page-offset = <0>;
+        display-offset = <0>;
+        multiplex-ratio = <31>;
+        segment-remap;
+        com-invdir;
+        com-sequential;
+        prechargep = <0x22>;
     };
 };
 
+/* --- LED STRIP (SPI3) --- */
 &pinctrl {
     spi3_default: spi3_default {
-        group1 {
-            psels = <NRF_PSEL(SPIM_MOSI, 0, 6)>;
-        };
+        group1 { psels = <NRF_PSEL(SPIM_MOSI, 0, 6)>; };
     };
-
     spi3_sleep: spi3_sleep {
-        group1 {
-            psels = <NRF_PSEL(SPIM_MOSI, 0, 6)>;
-            low-power-enable;
-        };
+        group1 { psels = <NRF_PSEL(SPIM_MOSI, 0, 6)>; low-power-enable; };
     };
 };
 
 &spi3 {
     compatible = "nordic,nrf-spim";
     status = "okay";
-
     pinctrl-0 = <&spi3_default>;
     pinctrl-1 = <&spi3_sleep>;
-    pinctrl-names = "default", "sleep";
-
+    
     led_strip: ws2812@0 {
         compatible = "worldsemi,ws2812-spi";
-        label = "WS2812";
-
         reg = <0>;
         spi-max-frequency = <4000000>;
-
         chain-length = <29>;
         spi-one-frame = <0x70>;
         spi-zero-frame = <0x40>;
-
         color-mapping = <LED_COLOR_ID_GREEN LED_COLOR_ID_RED LED_COLOR_ID_BLUE>;
     };
 };
 
+/* --- ROOT SELECTION --- */
 / {
     tps43_input: tps43_input {
         compatible = "zmk,input-listener";
         device = <&tps43>;
     };
-};
 
-&pro_micro_i2c {
-    status = "okay";
-
-    tps43: iqs5xx@74 {
-        status = "okay";
-        compatible = "azoteq,iqs5xx";
-        reg = <0x74>;
-
-        reset-gpios = <&pro_micro 4 GPIO_ACTIVE_LOW>;
-        rdy-gpios = <&pro_micro 0 GPIO_ACTIVE_HIGH>;
-
-        one-finger-tap;
-        press-and-hold;
-        press-and-hold-time = <250>;
-        two-finger-tap;
-
-        scroll;
-        natural-scroll-x;
-
-        bottom-beta = <15>;
-        stationary-threshold = <5>;
-
-        switch-xy;
-    };
-};
-
-/ {
     chosen {
         zmk,underglow = &led_strip;
-        zmk,display = &nice_view;
+        zmk,display = &oled; /* Point ZMK to the OLED node */
     };
 };
