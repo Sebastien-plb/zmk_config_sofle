@@ -70,8 +70,8 @@
 
 /* --- ROOT SELECTION --- */
 / {
-    tps43_input: tps43_input {
-        compatible = "zmk,input-listener";
+    tps43_split {
+        compatible = "zmk,input-split";
         device = <&tps43>;
     };
 
