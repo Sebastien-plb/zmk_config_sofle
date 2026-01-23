@@ -3,6 +3,10 @@
 #include <dt-bindings/input/input-event-codes.h> /* <--- REQUIRED for INPUT_REL_X/Y */
 #include "sofle.dtsi"
 
+/* --- DISABLE ENCODERS (CRITICAL) --- */
+&left_encoder { status = "disabled"; };
+&right_encoder { status = "disabled"; };
+
 /* --- 1. DEFINE THE PROCESSOR --- */
 / {
     /* 1. CURSOR TRANSFORMER (Matches Mouse Movement) */
