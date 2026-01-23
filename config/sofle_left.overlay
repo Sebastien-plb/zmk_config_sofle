@@ -1,31 +1,14 @@
 #include <dt-bindings/led/led.h>
+#include "sofle.dtsi"  /* <--- Includes the Split Pipe & LEDs */
 
-/* --- 1. DEFINE THE SPLIT PIPE (Required for Split Pointing) --- */
-/ {
-    split_inputs {
-        compatible = "zmk,input-split";
-        #address-cells = <1>;
-        #size-cells = <0>;
-
-        /* This creates the virtual "wire" for the right trackpad */
-        right_trackpad_split: input_split@0 {
-            compatible = "zmk,input-split";
-            reg = <0>; 
-        };
-    };
-};
-
-/* --- 2. I2C BUS: OLED & TRACKPAD --- */
 &pro_micro_i2c {
     status = "okay";
 
-    /* Trackpad (Address 0x74) */
+    /* 1. Local Trackpad (TPS43) */
     tps43: iqs5xx@74 {
         compatible = "azoteq,iqs5xx";
         status = "okay";
         reg = <0x74>;
-
-        /* Interrupt & Ready Pins */
         reset-gpios = <&pro_micro 4 GPIO_ACTIVE_LOW>;
         rdy-gpios = <&pro_micro 0 GPIO_ACTIVE_HIGH>;
 
@@ -41,7 +24,7 @@
         switch-xy;
     };
 
-    /* OLED Display (Address 0x3C) */
+    /* 2. OLED Display */
     oled: ssd1306@3c {
         compatible = "solomon,ssd1306fb";
         status = "okay";
@@ -59,45 +42,22 @@
     };
 };
 
-/* --- 3. LEDS (SPI3) --- */
-&pinctrl {
-    spi3_default: spi3_default { group1 { psels = <NRF_PSEL(SPIM_MOSI, 0, 6)>; }; };
-    spi3_sleep: spi3_sleep { group1 { psels = <NRF_PSEL(SPIM_MOSI, 0, 6)>; low-power-enable; }; };
-};
-
-&spi3 {
-    compatible = "nordic,nrf-spim";
-    status = "okay";
-    pinctrl-0 = <&spi3_default>;
-    pinctrl-1 = <&spi3_sleep>;
-    
-    led_strip: ws2812@0 {
-        compatible = "worldsemi,ws2812-spi";
-        reg = <0>;
-        spi-max-frequency = <4000000>;
-        chain-length = <29>;
-        spi-one-frame = <0x70>;
-        spi-zero-frame = <0x40>;
-        color-mapping = <LED_COLOR_ID_GREEN LED_COLOR_ID_RED LED_COLOR_ID_BLUE>;
-    };
-};
-
-/* --- 4. ROOT SELECTION (Listeners) --- */
+/* --- INPUT LISTENERS (MASTER LOGIC) --- */
 / {
-    /* Listener 1: Listen to LOCAL (Left) Trackpad */
-    tps43_input {
+    /* Listener A: Local (Left) Trackpad */
+    tps43_listener {
         compatible = "zmk,input-listener";
         device = <&tps43>;
     };
 
-    /* Listener 2: Listen to REMOTE (Right) Trackpad */
+    /* Listener B: Remote (Right) Trackpad */
+    /* Listens to the pipe defined in custom.dtsi */
     right_input_listener {
         compatible = "zmk,input-listener";
         device = <&right_trackpad_split>;
     };
 
     chosen {
-        zmk,underglow = &led_strip;
         zmk,display = &oled;
     };
 };
