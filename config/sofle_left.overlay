@@ -4,14 +4,14 @@
 /* --- 1. DISABLE ENCODERS --- */
 /* Critical: Frees up Pins D21 (P0.31) and D20 (P0.29) for the Display */
 &left_encoder { status = "disabled"; };
-&right_encoder { status = "disabled"; };  /* <--- ADD THIS LINE */
+&right_encoder { status = "disabled"; };
 
 
 /* --- 2. I2C BUS (Trackpad Only) --- */
 &pro_micro_i2c {
     status = "okay";
 
-    /* Local Trackpad (TPS43) - Keeping your settings */
+    /* Local Trackpad (TPS43) */
     tps43: iqs5xx@74 {
         compatible = "azoteq,iqs5xx";
         status = "okay";
@@ -19,7 +19,7 @@
         reset-gpios = <&pro_micro 4 GPIO_ACTIVE_LOW>;
         rdy-gpios = <&pro_micro 0 GPIO_ACTIVE_HIGH>;
 
-        /* Your Settings */
+        /* Settings */
         one-finger-tap;
         press-and-hold;
         press-and-hold-time = <250>;
@@ -30,8 +30,8 @@
         stationary-threshold = <5>;
         switch-xy;
     };
-
-    /* NOTE: OLED (ssd1306) is REMOVED from here. */
+    
+    /* OLED REMOVED */
 };
 
 
@@ -56,20 +56,22 @@
 
 
 /* --- 4. CUSTOM SPI BUS (Nice!View) --- */
-/* We create a new bus using the pins defined above */
 &spi0 {
     compatible = "nordic,nrf-spim";
     status = "okay";
+    
+    /* THESE 3 LINES MUST GO TOGETHER */
     pinctrl-0 = <&spi0_default>;
     pinctrl-1 = <&spi0_sleep>;
+    pinctrl-names = "default", "sleep"; /* <--- THIS WAS MISSING */
     
-    /* CS Pin: P1.07 (Note: &gpio1 7 is the raw pin name for P1.07) */
+    /* CS Pin: P1.07 (Pro Micro 10) */
     cs-gpios = <&gpio1 7 GPIO_ACTIVE_HIGH>;
 
     nice_view: ls0xx@0 {
         compatible = "sharp,ls0xx";
         spi-max-frequency = <1000000>;
-        reg = <0>; /* Uses index 0 of cs-gpios */
+        reg = <0>;
         width = <160>;
         height = <68>;
     };
@@ -90,7 +92,6 @@
         device = <&right_trackpad_split>;
     };
 
-    /* Set the System Display to Nice!View */
     chosen {
         zmk,display = &nice_view;
     };
