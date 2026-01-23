@@ -47,10 +47,10 @@
     };
 };
 
-/* --- 3. SPLIT BINDING (Apply Rotation) --- */
+/* --- 3. SPLIT BINDING (Fix: 180 Degree Rotation) --- */
 &right_trackpad_split {
     device = <&tps65>;
     
-    /* Logic: SWAP X/Y, then INVERT Y to fix "Left moves Down" */
-    input-processors = <&zip_xy_transform (INPUT_TRANSFORM_XY_SWAP | INPUT_TRANSFORM_Y_INVERT)>;
+    /* FIX: Invert both X and Y. Do NOT Swap. */
+    input-processors = <&zip_xy_transform (INPUT_TRANSFORM_X_INVERT | INPUT_TRANSFORM_Y_INVERT)>;
 };
