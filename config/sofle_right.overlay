@@ -4,8 +4,8 @@
 &pro_micro_i2c {
     status = "okay";
 
-    /* 1. Local Trackpad (TPS65 hardware using TPS43 config) */
-    tps43: iqs5xx@74 {
+    /* 1. Local Trackpad (TPS65 hardware using TPS65 config) */
+    tps65: iqs5xx@74 {
         compatible = "azoteq,iqs5xx";
         status = "okay";
         reg = <0x74>;
@@ -40,7 +40,7 @@
 /* --- SPLIT BINDING (SLAVE LOGIC) --- */
 /* Binds the hardware to the pipe defined in custom.dtsi */
 &right_trackpad_split {
-    device = <&tps43>;
+    device = <&tps65>;
 };
 
 /* No listeners here on the right side! */
