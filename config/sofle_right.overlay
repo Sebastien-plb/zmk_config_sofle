@@ -1,30 +1,14 @@
 #include <dt-bindings/led/led.h>
+#include "sofle.dtsi"  /* <--- Includes the Split Pipe & LEDs */
 
-/* --- 1. DEFINE THE SPLIT PIPE (Must Match Left Side) --- */
-/ {
-    split_inputs {
-        compatible = "zmk,input-split";
-        #address-cells = <1>;
-        #size-cells = <0>;
-
-        right_trackpad_split: input_split@0 {
-            compatible = "zmk,input-split";
-            reg = <0>; 
-        };
-    };
-};
-
-/* --- 2. I2C BUS: TRACKPAD ONLY --- */
 &pro_micro_i2c {
     status = "okay";
 
-    /* Trackpad (Using TPS43 config for TPS65 hardware) */
+    /* 1. Local Trackpad (TPS65 hardware using TPS43 config) */
     tps43: iqs5xx@74 {
         compatible = "azoteq,iqs5xx";
         status = "okay";
         reg = <0x74>;
-
-        /* Interrupt & Ready Pins */
         reset-gpios = <&pro_micro 4 GPIO_ACTIVE_LOW>;
         rdy-gpios = <&pro_micro 0 GPIO_ACTIVE_HIGH>;
 
@@ -38,58 +22,25 @@
         bottom-beta = <15>;
         stationary-threshold = <5>;
         switch-xy;
+        
+        /* NOTE: If you patch the driver later, uncomment these: */
+        /* x-resolution = <3072>; */
+        /* y-resolution = <2048>; */
     };
 
-    /* OLED Display - DISABLED to prevent I2C Freeze */
+    /* 2. OLED Display - DISABLED (Critical for I2C stability) */
     oled: ssd1306@3c {
         compatible = "solomon,ssd1306fb";
-        status = "disabled"; /* CHANGED TO DISABLED */
+        status = "disabled"; 
         reg = <0x3c>;
-        width = <128>;
-        height = <32>;
-        segment-offset = <0>;
-        page-offset = <0>;
-        display-offset = <0>;
-        multiplex-ratio = <31>;
-        segment-remap;
-        com-invdir;
-        com-sequential;
-        prechargep = <0x22>;
+        /* Config ignored when disabled */
     };
 };
 
-/* --- 3. LEDS (SPI3) --- */
-&pinctrl {
-    spi3_default: spi3_default { group1 { psels = <NRF_PSEL(SPIM_MOSI, 0, 6)>; }; };
-    spi3_sleep: spi3_sleep { group1 { psels = <NRF_PSEL(SPIM_MOSI, 0, 6)>; low-power-enable; }; };
-};
-
-&spi3 {
-    compatible = "nordic,nrf-spim";
-    status = "okay";
-    pinctrl-0 = <&spi3_default>;
-    pinctrl-1 = <&spi3_sleep>;
-    
-    led_strip: ws2812@0 {
-        compatible = "worldsemi,ws2812-spi";
-        reg = <0>;
-        spi-max-frequency = <4000000>;
-        chain-length = <29>;
-        spi-one-frame = <0x70>;
-        spi-zero-frame = <0x40>;
-        color-mapping = <LED_COLOR_ID_GREEN LED_COLOR_ID_RED LED_COLOR_ID_BLUE>;
-    };
-};
-
-/* --- 4. ROOT SELECTION (Split Relay) --- */
-/* This binds the local hardware to the split pipe we defined at the top */
+/* --- SPLIT BINDING (SLAVE LOGIC) --- */
+/* Binds the hardware to the pipe defined in custom.dtsi */
 &right_trackpad_split {
     device = <&tps43>;
 };
 
-/ {
-    chosen {
-        zmk,underglow = &led_strip;
-        /* zmk,display = &oled;  <-- REMOVED because OLED is disabled */
-    };
-};
+/* No listeners here on the right side! */
