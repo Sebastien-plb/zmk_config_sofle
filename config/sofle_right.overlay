@@ -1,46 +1,54 @@
 #include <dt-bindings/led/led.h>
 
-/* --- DISPLAY CONFIGURATION (I2C OLED) --- */
+/* --- I2C BUS: OLED & TRACKPAD --- */
 &pro_micro_i2c {
     status = "okay";
 
+    /* 1. Trackpad (Address 0x74) */
+    tps65: iqs5xx@74 {
+        compatible = "azoteq,iqs5xx";
+        status = "okay";
+        reg = <0x74>;
+
+        /* Interrupt & Ready Pins */
+        reset-gpios = <&pro_micro 4 GPIO_ACTIVE_LOW>;
+        rdy-gpios = <&pro_micro 0 GPIO_ACTIVE_HIGH>;
+
+        /* Settings */
+        one-finger-tap;
+        press-and-hold;
+        press-and-hold-time = <250>;
+        two-finger-tap;
+        scroll;
+        natural-scroll-x;
+        bottom-beta = <15>;
+        stationary-threshold = <5>;
+        switch-xy;
+    };
+
+    /* 2. OLED Display (Address 0x3C) */
     oled: ssd1306@3c {
         compatible = "solomon,ssd1306fb";
-        reg = <0x3c>; /* Standard address for 0.91" OLED */
+        reg = <0x3c>;
         width = <128>;
         height = <32>;
         
-        /* Orientation & Geometry Settings */
+        /* Orientation */
         segment-offset = <0>;
         page-offset = <0>;
         display-offset = <0>;
         multiplex-ratio = <31>;
-        
-        /* Flip 180 degrees (Standard for Sofle mount) */
-        /* If text is upside down, remove the next two lines: */
-        segment-remap;
-        com-invdir;
-        
+        segment-remap;   /* Remove if upside down */
+        com-invdir;      /* Remove if upside down */
         com-sequential;
         prechargep = <0x22>;
     };
 };
 
-/* --- LED CONFIGURATION (SPI3) --- */
-/* Kept exactly as you had it, since this works for your WS2812s */
+/* --- LEDS (SPI3) --- */
 &pinctrl {
-    spi3_default: spi3_default {
-        group1 {
-            psels = <NRF_PSEL(SPIM_MOSI, 0, 6)>; /* P0.06 = D1 */
-        };
-    };
-
-    spi3_sleep: spi3_sleep {
-        group1 {
-            psels = <NRF_PSEL(SPIM_MOSI, 0, 6)>;
-            low-power-enable;
-        };
-    };
+    spi3_default: spi3_default { group1 { psels = <NRF_PSEL(SPIM_MOSI, 0, 6)>; }; };
+    spi3_sleep: spi3_sleep { group1 { psels = <NRF_PSEL(SPIM_MOSI, 0, 6)>; low-power-enable; }; };
 };
 
 &spi3 {
@@ -48,11 +56,9 @@
     status = "okay";
     pinctrl-0 = <&spi3_default>;
     pinctrl-1 = <&spi3_sleep>;
-    pinctrl-names = "default", "sleep";
-
+    
     led_strip: ws2812@0 {
         compatible = "worldsemi,ws2812-spi";
-        label = "WS2812";
         reg = <0>;
         spi-max-frequency = <4000000>;
         chain-length = <29>;
@@ -64,8 +70,13 @@
 
 /* --- ROOT SELECTION --- */
 / {
+    tps65_input: tps65_input {
+        compatible = "zmk,input-listener";
+        device = <&tps65>;
+    };
+
     chosen {
         zmk,underglow = &led_strip;
-        zmk,display = &oled; /* Point ZMK to the OLED node */
+        zmk,display = &oled;
     };
 };
