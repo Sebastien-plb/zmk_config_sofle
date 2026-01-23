@@ -1,13 +1,18 @@
 #include <dt-bindings/led/led.h>
 #include <dt-bindings/zmk/input_transform.h> 
+#include <dt-bindings/input/input-event-codes.h> /* <--- REQUIRED for INPUT_REL_X/Y */
 #include "sofle.dtsi"
 
-/* --- 1. DEFINE THE PROCESSOR (This was missing!) --- */
+/* --- 1. DEFINE THE PROCESSOR --- */
 / {
-    /* We create a "tool" named zip_xy_transform that can handle rotation logic */
     zip_xy_transform: zip_xy_transform {
         compatible = "zmk,input-processor-transform";
         #input-processor-cells = <1>;
+        
+        /* These two lines were missing and caused the error: */
+        type = <INPUT_EV_REL>;
+        x-codes = <INPUT_REL_X>;
+        y-codes = <INPUT_REL_Y>;
     };
 };
 
@@ -32,8 +37,6 @@
         natural-scroll-x;
         bottom-beta = <15>;
         stationary-threshold = <5>;
-        
-        /* No invert/swap commands here. */
     };
 
     /* OLED Display - DISABLED */
@@ -48,7 +51,6 @@
 &right_trackpad_split {
     device = <&tps65>;
     
-    /* Now we can use the &zip_xy_transform we defined at the top */
     /* Logic: SWAP X/Y, then INVERT Y to fix "Left moves Down" */
     input-processors = <&zip_xy_transform (INPUT_TRANSFORM_XY_SWAP | INPUT_TRANSFORM_Y_INVERT)>;
 };
