@@ -43,5 +43,5 @@
        Try this combination first. 
        It Swaps X/Y, then Inverts X (because usually swap flips direction too).
     */
-    input-processors = <&zip_xy_transform (INPUT_TRANSFORM_XY_SWAP | INPUT_TRANSFORM_X_INVERT)>;
+    input-processors = <&zip_xy_transform (INPUT_TRANSFORM_XY_SWAP | INPUT_TRANSFORM_Y_INVERT)>;
 };
