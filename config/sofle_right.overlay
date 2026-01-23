@@ -21,7 +21,9 @@
         natural-scroll-x;
         bottom-beta = <15>;
         stationary-threshold = <5>;
-        
+        invert-x;
+        invert-y;
+
         
         /* NOTE: If you patch the driver later, uncomment these: */
         /* x-resolution = <3072>; */
