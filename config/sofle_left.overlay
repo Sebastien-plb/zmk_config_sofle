@@ -1,10 +1,16 @@
 #include <dt-bindings/led/led.h>
-#include "sofle.dtsi"  /* <--- Includes the Split Pipe & LEDs */
+#include "sofle.dtsi"
 
+/* --- 1. DISABLE ENCODERS --- */
+/* Critical: Frees up Pins D21 (P0.31) and D20 (P0.29) for the Display */
+&left_encoder { status = "disabled"; };
+
+
+/* --- 2. I2C BUS (Trackpad Only) --- */
 &pro_micro_i2c {
     status = "okay";
 
-    /* 1. Local Trackpad (TPS43) */
+    /* Local Trackpad (TPS43) - Keeping your settings */
     tps43: iqs5xx@74 {
         compatible = "azoteq,iqs5xx";
         status = "okay";
@@ -12,7 +18,7 @@
         reset-gpios = <&pro_micro 4 GPIO_ACTIVE_LOW>;
         rdy-gpios = <&pro_micro 0 GPIO_ACTIVE_HIGH>;
 
-        /* Settings */
+        /* Your Settings */
         one-finger-tap;
         press-and-hold;
         press-and-hold-time = <250>;
@@ -24,25 +30,52 @@
         switch-xy;
     };
 
-    /* 2. OLED Display */
-    oled: ssd1306@3c {
-        compatible = "solomon,ssd1306fb";
-        status = "okay";
-        reg = <0x3c>;
-        width = <128>;
-        height = <32>;
-        segment-offset = <0>;
-        page-offset = <0>;
-        display-offset = <0>;
-        multiplex-ratio = <31>;
-        segment-remap;
-        com-invdir;
-        com-sequential;
-        prechargep = <0x22>;
+    /* NOTE: OLED (ssd1306) is REMOVED from here. */
+};
+
+
+/* --- 3. PIN CONTROL (Define Custom SPI Pins) --- */
+&pinctrl {
+    /* Define SPI0 for Nice!View: SCK=P0.31, MOSI=P0.29 */
+    spi0_default: spi0_default {
+        group1 {
+            psels = <NRF_PSEL(SPIM_SCK, 0, 31)>,
+                    <NRF_PSEL(SPIM_MOSI, 0, 29)>;
+        };
+    };
+
+    spi0_sleep: spi0_sleep {
+        group1 {
+            psels = <NRF_PSEL(SPIM_SCK, 0, 31)>,
+                    <NRF_PSEL(SPIM_MOSI, 0, 29)>;
+            low-power-enable;
+        };
     };
 };
 
-/* --- INPUT LISTENERS (MASTER LOGIC) --- */
+
+/* --- 4. CUSTOM SPI BUS (Nice!View) --- */
+/* We create a new bus using the pins defined above */
+&spi0 {
+    compatible = "nordic,nrf-spim";
+    status = "okay";
+    pinctrl-0 = <&spi0_default>;
+    pinctrl-1 = <&spi0_sleep>;
+    
+    /* CS Pin: P1.07 (Note: &gpio1 7 is the raw pin name for P1.07) */
+    cs-gpios = <&gpio1 7 GPIO_ACTIVE_HIGH>;
+
+    nice_view: ls0xx@0 {
+        compatible = "sharp,ls0xx";
+        spi-max-frequency = <1000000>;
+        reg = <0>; /* Uses index 0 of cs-gpios */
+        width = <160>;
+        height = <68>;
+    };
+};
+
+
+/* --- 5. LOGIC & LISTENERS --- */
 / {
     /* Listener A: Local (Left) Trackpad */
     tps43_listener {
@@ -51,13 +84,13 @@
     };
 
     /* Listener B: Remote (Right) Trackpad */
-    /* Listens to the pipe defined in custom.dtsi */
     right_input_listener {
         compatible = "zmk,input-listener";
         device = <&right_trackpad_split>;
     };
 
+    /* Set the System Display to Nice!View */
     chosen {
-        zmk,display = &oled;
+        zmk,display = &nice_view;
     };
 };
