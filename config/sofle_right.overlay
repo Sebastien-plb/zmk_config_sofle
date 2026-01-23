@@ -1,10 +1,11 @@
 #include <dt-bindings/led/led.h>
-#include "sofle.dtsi"  /* <--- Includes the Split Pipe & LEDs */
+#include <dt-bindings/zmk/input_transform.h> /* <--- REQUIRED for rotation */
+#include "sofle.dtsi"
 
 &pro_micro_i2c {
     status = "okay";
 
-    /* 1. Local Trackpad (TPS65 hardware using TPS65 config) */
+    /* 1. Local Trackpad (TPS65) */
     tps65: iqs5xx@74 {
         compatible = "azoteq,iqs5xx";
         status = "okay";
@@ -12,7 +13,7 @@
         reset-gpios = <&pro_micro 4 GPIO_ACTIVE_LOW>;
         rdy-gpios = <&pro_micro 0 GPIO_ACTIVE_HIGH>;
 
-        /* Settings */
+        /* Standard Settings */
         one-finger-tap;
         press-and-hold;
         press-and-hold-time = <250>;
@@ -21,28 +22,26 @@
         natural-scroll-x;
         bottom-beta = <15>;
         stationary-threshold = <5>;
-        invert-x;
-        invert-y;
-
         
-        /* NOTE: If you patch the driver later, uncomment these: */
-        /* x-resolution = <3072>; */
-        /* y-resolution = <2048>; */
+        /* REMOVED: invert-x; invert-y; switch-xy; (Not valid here!) */
+        /* REMOVED: switch-xy; (Also managed via processors below) */
     };
 
-    /* 2. OLED Display - DISABLED (Critical for I2C stability) */
+    /* 2. OLED Display - DISABLED */
     oled: ssd1306@3c {
         compatible = "solomon,ssd1306fb";
         status = "disabled"; 
         reg = <0x3c>;
-        /* Config ignored when disabled */
     };
 };
 
-/* --- SPLIT BINDING (SLAVE LOGIC) --- */
-/* Binds the hardware to the pipe defined in custom.dtsi */
+/* --- SPLIT BINDING (Where Rotation Happens) --- */
 &right_trackpad_split {
     device = <&tps65>;
+    
+    /* Since "Left goes Down", you need SWAP. 
+       Try this combination first. 
+       It Swaps X/Y, then Inverts X (because usually swap flips direction too).
+    */
+    input-processors = <&zip_xy_transform (INPUT_TRANSFORM_XY_SWAP | INPUT_TRANSFORM_X_INVERT)>;
 };
-
-/* No listeners here on the right side! */
