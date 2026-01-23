@@ -5,14 +5,23 @@
 
 /* --- 1. DEFINE THE PROCESSOR --- */
 / {
+    /* 1. CURSOR TRANSFORMER (Matches Mouse Movement) */
     zip_xy_transform: zip_xy_transform {
         compatible = "zmk,input-processor-transform";
         #input-processor-cells = <1>;
-        
-        /* These two lines were missing and caused the error: */
         type = <INPUT_EV_REL>;
         x-codes = <INPUT_REL_X>;
         y-codes = <INPUT_REL_Y>;
+    };
+
+    /* 2. SCROLL TRANSFORMER (Matches Scroll Wheel) */
+    /* We map Horizontal Scroll to "X" and Vertical Scroll to "Y" so we can rotate them */
+    zip_scroll_transform: zip_scroll_transform {
+        compatible = "zmk,input-processor-transform";
+        #input-processor-cells = <1>;
+        type = <INPUT_EV_REL>;
+        x-codes = <INPUT_REL_HWHEEL>; /* Horizontal Scroll */
+        y-codes = <INPUT_REL_WHEEL>;  /* Vertical Scroll */
     };
 };
 
@@ -55,5 +64,6 @@
        1. SWAP: Turns "Up (+Y)" into "Right (+X)" -> We reverse this.
        2. INVERT X: Flips the direction to match your movement.
     */
-    input-processors = <&zip_xy_transform (INPUT_TRANSFORM_XY_SWAP | INPUT_TRANSFORM_X_INVERT)>;
+input-processors = <&zip_xy_transform (INPUT_TRANSFORM_XY_SWAP | INPUT_TRANSFORM_X_INVERT)>,
+                       <&zip_scroll_transform (INPUT_TRANSFORM_XY_SWAP | INPUT_TRANSFORM_X_INVERT)>;
 };
