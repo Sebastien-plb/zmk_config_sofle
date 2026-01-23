@@ -1,6 +1,6 @@
 #include <dt-bindings/led/led.h>
 
-/* --- I2C BUS: OLED & TRACKPAD --- */
+/* --- I2C BUS: TRACKPAD ONLY --- */
 &pro_micro_i2c {
     status = "okay";
 
@@ -11,6 +11,7 @@
         reg = <0x74>;
 
         /* Interrupt & Ready Pins */
+        /* Ensure these pin numbers match your Right Side physical wiring! */
         reset-gpios = <&pro_micro 4 GPIO_ACTIVE_LOW>;
         rdy-gpios = <&pro_micro 0 GPIO_ACTIVE_HIGH>;
 
@@ -24,22 +25,28 @@
         bottom-beta = <15>;
         stationary-threshold = <5>;
         switch-xy;
+
+        /* TPS65 SPECIFIC RESOLUTION FIX */
+        /* If your driver supports these properties, uncomment them. */
+        /* If not, you MUST edit the C driver code as discussed previously. */
+        // x-resolution = <3072>;
+        // y-resolution = <2048>;
     };
 
-    /* 2. OLED Display (Address 0x3C) */
+    /* 2. OLED Display - DISABLED */
+    /* Disabled to prevent I2C bus hangs */
     oled: ssd1306@3c {
         compatible = "solomon,ssd1306fb";
+        status = "disabled";  /* CHANGED FROM OKAY */
         reg = <0x3c>;
         width = <128>;
         height = <32>;
-        
-        /* Orientation */
         segment-offset = <0>;
         page-offset = <0>;
         display-offset = <0>;
         multiplex-ratio = <31>;
-        segment-remap;   /* Remove if upside down */
-        com-invdir;      /* Remove if upside down */
+        segment-remap;
+        com-invdir;
         com-sequential;
         prechargep = <0x22>;
     };
@@ -77,6 +84,6 @@
 
     chosen {
         zmk,underglow = &led_strip;
-        zmk,display = &oled;
+        /* zmk,display = &oled;  <-- REMOVED or COMMENTED OUT */
     };
 };
