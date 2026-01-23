@@ -1,0 +1,47 @@
+/* This file is included by BOTH Left and Right overlays */
+
+/ {
+    /* 1. DEFINE THE VIRTUAL SPLIT PIPE */
+    split_inputs {
+        compatible = "zmk,input-split";
+        #address-cells = <1>;
+        #size-cells = <0>;
+
+        /* The wire that carries Right Trackpad data to the Left side */
+        right_trackpad_split: input_split@0 {
+            compatible = "zmk,input-split";
+            reg = <0>; 
+        };
+    };
+};
+
+/* 2. COMMON LED SETTINGS (SPI3) */
+/* Since both sides use the same pins for LEDs, we define it once here */
+&pinctrl {
+    spi3_default: spi3_default { group1 { psels = <NRF_PSEL(SPIM_MOSI, 0, 6)>; }; };
+    spi3_sleep: spi3_sleep { group1 { psels = <NRF_PSEL(SPIM_MOSI, 0, 6)>; low-power-enable; }; };
+};
+
+&spi3 {
+    compatible = "nordic,nrf-spim";
+    status = "okay";
+    pinctrl-0 = <&spi3_default>;
+    pinctrl-1 = <&spi3_sleep>;
+    
+    led_strip: ws2812@0 {
+        compatible = "worldsemi,ws2812-spi";
+        reg = <0>;
+        spi-max-frequency = <4000000>;
+        chain-length = <29>;
+        spi-one-frame = <0x70>;
+        spi-zero-frame = <0x40>;
+        color-mapping = <LED_COLOR_ID_GREEN LED_COLOR_ID_RED LED_COLOR_ID_BLUE>;
+    };
+};
+
+/* 3. ASSIGN LED STRIP TO CHOSEN */
+/ {
+    chosen {
+        zmk,underglow = &led_strip;
+    };
+};
