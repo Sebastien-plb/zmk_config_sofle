@@ -4,6 +4,7 @@
 /* --- 1. DISABLE ENCODERS --- */
 /* Critical: Frees up Pins D21 (P0.31) and D20 (P0.29) for the Display */
 &left_encoder { status = "disabled"; };
+&right_encoder { status = "disabled"; };  /* <--- ADD THIS LINE */
 
 
 /* --- 2. I2C BUS (Trackpad Only) --- */
