@@ -51,19 +51,24 @@
     };
 };
 
-/* --- 4. SPI BUS (Nice!View) --- */
+/* --- 4. SPI BUS (Nice!View - Fixed for No Sleep) --- */
 &spi1 {
     compatible = "nordic,nrf-spim";
     status = "okay";
     
-/* FIX: Only use the "default" state. Do not allow "sleep" state. */
+    /* State 1: Default (Always Active) */
     pinctrl-0 = <&spi1_default>;
-    /* pinctrl-1 = <&spi1_sleep>;  <-- DELETE or COMMENT THIS LINE */
-    pinctrl-names = "default";     /* <-- DELETE ", sleep" FROM HERE */
     
-    /* CS Pin: P1.07 (Pad 107) */
+    /* State 2: Sleep (DELETED) */
+    /* You must NOT have pinctrl-1 defined if pinctrl-names is only "default" */
+    /* pinctrl-1 = <&spi1_sleep>;  <-- REMOVE THIS LINE */
+    
+    /* Names: Only 1 state exists now */
+    pinctrl-names = "default";
+    
+    /* CS Pin */
     cs-gpios = <&gpio1 7 GPIO_ACTIVE_HIGH>;
-    
+
     nice_view: ls0xx@0 {
         compatible = "sharp,ls0xx";
         spi-max-frequency = <1000000>;
