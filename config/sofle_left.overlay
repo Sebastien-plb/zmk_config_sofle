@@ -1,9 +1,12 @@
 #include <dt-bindings/led/led.h>
 #include "sofle.dtsi"
 
-/* --- 1. DISABLE ENCODERS --- */
+/* --- 1. DISABLE CONFLICTS --- */
 &left_encoder { status = "disabled"; };
 &right_encoder { status = "disabled"; };
+
+/* Disable Default SPI (CRITICAL: Prevents shield from using wrong pins) */
+&pro_micro_spi { status = "disabled"; };
 
 /* --- 2. I2C BUS (Trackpad) --- */
 &pro_micro_i2c {
@@ -25,8 +28,8 @@
         stationary-threshold = <5>;
         switch-xy;
     };
-    
-    /* CRITICAL: Kill the OLED node so it doesn't confuse the system */
+
+    /* CRITICAL: Kill the OLED node */
     oled: ssd1306@3c {
         status = "disabled";
     };
@@ -36,46 +39,34 @@
 &pinctrl {
     spi1_default: spi1_default {
         group1 {
-            /* ONLY SCK and MOSI. Do NOT define MISO (Input) on the same pin as MOSI (Output) */
+            /* SCK=P0.31, MOSI=P0.29 */
             psels = <NRF_PSEL(SPIM_SCK, 0, 31)>,
                     <NRF_PSEL(SPIM_MOSI, 0, 29)>;
         };
     };
-    
-    spi1_sleep: spi1_sleep {
-        group1 {
-            psels = <NRF_PSEL(SPIM_SCK, 0, 31)>,
-                    <NRF_PSEL(SPIM_MOSI, 0, 29)>;
-            low-power-enable;
-        };
-    };
+    /* Note: spi1_sleep is removed to fix the power freeze bug */
 };
 
-/* --- 4. SPI BUS (Nice!View - No Sleep Mode) --- */
-&spi1 {
+/* --- 4. SPI BUS (The "Nice!View" Bus) --- */
+
+/* THE FIX: We add the label 'nice_view_spi' here. 
+   The shield finds this label and attaches the screen automatically. */
+nice_view_spi: &spi1 {
     compatible = "nordic,nrf-spim";
     status = "okay";
     
-    /* 1. Define the Active State */
+    /* Active State */
     pinctrl-0 = <&spi1_default>;
     
-    /* 2. NUCLEAR OPTION: Force delete the sleep state */
-    /* This guarantees pinctrl-1 does not exist, fixing the "2 strings" error */
+    /* Nuclear Option: Delete sleep state to prevent freezing */
     /delete-property/ pinctrl-1;
-    
-    /* 3. Name the only state that remains */
     pinctrl-names = "default";
     
-    /* 4. CS Pin Configuration */
+    /* CS Pin Configuration (Pad 107) */
     cs-gpios = <&gpio1 7 GPIO_ACTIVE_HIGH>;
 
-    nice_view: ls0xx@0 {
-        compatible = "sharp,ls0xx";
-        spi-max-frequency = <1000000>;
-        reg = <0>;
-        width = <160>;
-        height = <68>;
-    };
+    /* NOTE: We REMOVED 'nice_view: ls0xx@0' from here.
+       The nice_view shield inserts it for you! */
 };
 
 /* --- 5. LOGIC & LISTENERS --- */
@@ -90,9 +81,6 @@
         device = <&right_trackpad_split>;
     };
     
-    /* THE FIX: Map BOTH keys to Nice!View */
-    chosen {
-        zephyr,display = &nice_view; /* Hardware Driver uses this */
-        zmk,display = &nice_view;    /* ZMK Widgets use this */
-    };
+    /* NOTE: We REMOVED the 'chosen' block. 
+       The nice_view shield sets 'zmk,display' for you! */
 };
