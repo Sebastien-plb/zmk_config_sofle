@@ -56,9 +56,10 @@
     compatible = "nordic,nrf-spim";
     status = "okay";
     
+/* FIX: Only use the "default" state. Do not allow "sleep" state. */
     pinctrl-0 = <&spi1_default>;
-    pinctrl-1 = <&spi1_sleep>;
-    pinctrl-names = "default", "sleep";
+    /* pinctrl-1 = <&spi1_sleep>;  <-- DELETE or COMMENT THIS LINE */
+    pinctrl-names = "default";     /* <-- DELETE ", sleep" FROM HERE */
     
     /* CS Pin: P1.07 (Pad 107) */
     cs-gpios = <&gpio1 7 GPIO_ACTIVE_HIGH>;
