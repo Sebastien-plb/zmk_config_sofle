@@ -5,22 +5,25 @@
 &left_encoder { status = "disabled"; };
 &right_encoder { status = "disabled"; };
 
-/* CONFLICT FIX:
-   The nRF52 cannot run SPI0 (Nice!View) and I2C0 (Trackpad) at the same time.
-   We explicitly DISABLE the default I2C0 bus here.
-*/
+/* DISABLE I2C0 (Resource 0) */
+/* We disable the old bus entirely to free up Resource 0 for the Nice!View */
 &pro_micro_i2c {
     status = "disabled";
 };
 
-/* --- 2. SETUP TRACKPAD ON I2C1 (NEW BUS) --- */
-/* We enable I2C1 and assign it to the same pins (D1/D0) used by the trackpad. */
+/* DISABLE THE OLD OLED NODE */
+/* We reference the EXISTING label &oled instead of creating a new one. */
+&oled {
+    status = "disabled";
+};
+
+/* --- 2. SETUP TRACKPAD ON I2C1 (Resource 1) --- */
+/* We create a NEW I2C bus on Resource 1, using the same physical pins. */
 &i2c1 {
     compatible = "nordic,nrf-twi";
     status = "okay";
     
-    /* Assign pins: SDA=ProMicro 2 (P0.17), SCL=ProMicro 3 (P0.20) 
-       (These are standard Sofle I2C pins) */
+    /* Map I2C1 to the standard Sofle pins (SDA=17, SCL=20) */
     pinctrl-0 = <&i2c1_default>;
     pinctrl-1 = <&i2c1_sleep>;
     pinctrl-names = "default", "sleep";
@@ -42,20 +45,17 @@
         stationary-threshold = <5>;
         switch-xy;
     };
-
-    /* Ensure OLED is disabled on this bus too */
-    oled: ssd1306@3c {
-        status = "disabled";
-    };
+    
+    /* Note: We do NOT add an OLED node here. You don't have one! */
 };
 
 /* --- 3. PIN CONTROL FOR I2C1 --- */
-/* We need to tell the chip to route I2C1 to the correct physical pins */
 &pinctrl {
+    /* Route I2C1 to Pro Micro pins 2 (SDA) and 3 (SCL) */
     i2c1_default: i2c1_default {
         group1 {
-            psels = <NRF_PSEL(TWIM_SDA, 0, 17)>, /* SDA = P0.17 */
-                    <NRF_PSEL(TWIM_SCL, 0, 20)>; /* SCL = P0.20 */
+            psels = <NRF_PSEL(TWIM_SDA, 0, 17)>,
+                    <NRF_PSEL(TWIM_SCL, 0, 20)>;
         };
     };
     i2c1_sleep: i2c1_sleep {
@@ -66,7 +66,7 @@
         };
     };
 
-    /* Custom pins for Nice!View (SPI0) */
+    /* Define Custom Pins for Nice!View (SPI) */
     nice_view_custom_pins: nice_view_custom_pins {
         group1 {
             psels = <NRF_PSEL(SPIM_SCK, 0, 31)>,   /* D21 */
@@ -76,10 +76,9 @@
 };
 
 /* --- 4. CONFIGURE NICE!VIEW (ON SPI0) --- */
-/* The 'nice_view_adapter' gives us this label (on SPI0). 
-   We just need to point it to your custom pins. */
+/* The 'nice_view_adapter' shield created this label. We override it. */
 &nice_view_spi {
-    /* Use the Custom D21/D20 Pins */
+    /* Use Custom Pins */
     pinctrl-0 = <&nice_view_custom_pins>;
     
     /* DELETE Sleep State (Fixes Master Crash) */
