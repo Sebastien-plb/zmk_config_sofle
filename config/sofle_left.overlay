@@ -1,24 +1,22 @@
 #include <dt-bindings/led/led.h>
 #include "sofle.dtsi"
 
-/* --- 1. DISABLE ENCODERS (Fixes "undefined reference" error) --- */
+/* --- 1. DISABLE ENCODERS --- */
 &left_encoder { status = "disabled"; };
-&right_encoder { status = "disabled"; }; /* <--- Critical Addition */
+&right_encoder { status = "disabled"; };
 
-
-/* --- 2. I2C BUS (Trackpad) --- */
+/* --- 2. I2C BUS (Trackpad Only) --- */
 &pro_micro_i2c {
     status = "okay";
 
-    /* Local Trackpad (TPS43) */
+    /* ENABLE TRACKPAD */
     tps43: iqs5xx@74 {
         compatible = "azoteq,iqs5xx";
         status = "okay";
         reg = <0x74>;
         reset-gpios = <&pro_micro 4 GPIO_ACTIVE_LOW>;
         rdy-gpios = <&pro_micro 0 GPIO_ACTIVE_HIGH>;
-
-        /* Settings */
+        
         one-finger-tap;
         press-and-hold;
         press-and-hold-time = <250>;
@@ -29,14 +27,16 @@
         stationary-threshold = <5>;
         switch-xy;
     };
-    
-    /* OLED Disabled */
+
+    /* CRITICAL FIX: You must explicitly disable the OLED node.
+       If you just remove the text, the node from sofle.dtsi remains active! */
+    oled: ssd1306@3c {
+        status = "disabled"; 
+    };
 };
 
-
-/* --- 3. PIN CONTROL (Using SPI1 Pins) --- */
+/* --- 3. PIN CONTROL (SPI1) --- */
 &pinctrl {
-    /* Define SPI1 for Nice!View: SCK=P0.31, MOSI=P0.29 */
     spi1_default: spi1_default {
         group1 {
             psels = <NRF_PSEL(SPIM_SCK, 0, 31)>,
@@ -53,9 +53,7 @@
     };
 };
 
-
-/* --- 4. CUSTOM SPI BUS (Using SPI1) --- */
-/* Changed from &spi0 to &spi1 to avoid conflict with Trackpad I2C */
+/* --- 4. SPI BUS (Nice!View) --- */
 &spi1 {
     compatible = "nordic,nrf-spim";
     status = "okay";
@@ -64,7 +62,7 @@
     pinctrl-1 = <&spi1_sleep>;
     pinctrl-names = "default", "sleep";
     
-    /* CS Pin: P1.07 (Pro Micro 10) */
+    /* CS on P1.07 (Pad 107) */
     cs-gpios = <&gpio1 7 GPIO_ACTIVE_HIGH>;
 
     nice_view: ls0xx@0 {
@@ -76,16 +74,13 @@
     };
 };
 
-
 /* --- 5. LOGIC & LISTENERS --- */
 / {
-    /* Listener A: Local (Left) Trackpad */
     tps43_listener {
         compatible = "zmk,input-listener";
         device = <&tps43>;
     };
 
-    /* Listener B: Remote (Right) Trackpad */
     right_input_listener {
         compatible = "zmk,input-listener";
         device = <&right_trackpad_split>;
