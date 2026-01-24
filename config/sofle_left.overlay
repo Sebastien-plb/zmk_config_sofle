@@ -5,30 +5,23 @@
 &left_encoder { status = "disabled"; };
 &right_encoder { status = "disabled"; };
 
-/* DISABLE I2C0 (Resource 0) */
-/* We disable the old bus entirely to free up Resource 0 for the Nice!View */
-&pro_micro_i2c {
-    status = "disabled";
-};
+/* DISABLE I2C0 (Resource 0) to save it for Nice!View */
+&pro_micro_i2c { status = "disabled"; };
 
-/* DISABLE THE OLD OLED NODE */
-/* We reference the EXISTING label &oled instead of creating a new one. */
-&oled {
-    status = "disabled";
-};
+/* DISABLE OLD OLED LABEL */
+&oled { status = "disabled"; };
 
-/* --- 2. SETUP TRACKPAD ON I2C1 (Resource 1) --- */
-/* We create a NEW I2C bus on Resource 1, using the same physical pins. */
+/* --- 2. MOVE TRACKPAD TO I2C1 (Resource 1) --- */
 &i2c1 {
     compatible = "nordic,nrf-twi";
     status = "okay";
     
-    /* Map I2C1 to the standard Sofle pins (SDA=17, SCL=20) */
+    /* Map to Standard Pins (SDA=17, SCL=20) */
     pinctrl-0 = <&i2c1_default>;
     pinctrl-1 = <&i2c1_sleep>;
     pinctrl-names = "default", "sleep";
     
-    /* Move Trackpad definition HERE */
+    /* Trackpad Lives Here Now */
     tps43: iqs5xx@74 {
         compatible = "azoteq,iqs5xx";
         status = "okay";
@@ -45,47 +38,30 @@
         stationary-threshold = <5>;
         switch-xy;
     };
-    
-    /* Note: We do NOT add an OLED node here. You don't have one! */
 };
 
-/* --- 3. PIN CONTROL FOR I2C1 --- */
+/* --- 3. PIN DEFINITIONS --- */
 &pinctrl {
-    /* Route I2C1 to Pro Micro pins 2 (SDA) and 3 (SCL) */
+    /* I2C1 Pins */
     i2c1_default: i2c1_default {
-        group1 {
-            psels = <NRF_PSEL(TWIM_SDA, 0, 17)>,
-                    <NRF_PSEL(TWIM_SCL, 0, 20)>;
-        };
+        group1 { psels = <NRF_PSEL(TWIM_SDA, 0, 17)>, <NRF_PSEL(TWIM_SCL, 0, 20)>; };
     };
     i2c1_sleep: i2c1_sleep {
-        group1 {
-            psels = <NRF_PSEL(TWIM_SDA, 0, 17)>,
-                    <NRF_PSEL(TWIM_SCL, 0, 20)>;
-            low-power-enable;
-        };
+        group1 { psels = <NRF_PSEL(TWIM_SDA, 0, 17)>, <NRF_PSEL(TWIM_SCL, 0, 20)>; low-power-enable; };
     };
 
-    /* Define Custom Pins for Nice!View (SPI) */
+    /* Custom Nice!View Pins (D21/D20) */
     nice_view_custom_pins: nice_view_custom_pins {
-        group1 {
-            psels = <NRF_PSEL(SPIM_SCK, 0, 31)>,   /* D21 */
-                    <NRF_PSEL(SPIM_MOSI, 0, 29)>;  /* D20 */
-        };
+        group1 { psels = <NRF_PSEL(SPIM_SCK, 0, 31)>, <NRF_PSEL(SPIM_MOSI, 0, 29)>; };
     };
 };
 
-/* --- 4. CONFIGURE NICE!VIEW (ON SPI0) --- */
-/* The 'nice_view_adapter' shield created this label. We override it. */
+/* --- 4. CONFIGURE NICE!VIEW (SPI0) --- */
 &nice_view_spi {
     /* Use Custom Pins */
     pinctrl-0 = <&nice_view_custom_pins>;
-    
-    /* DELETE Sleep State (Fixes Master Crash) */
-    /delete-property/ pinctrl-1;
+    /delete-property/ pinctrl-1; /* No Sleep */
     pinctrl-names = "default";
-    
-    /* Use Pad 107 for CS */
     cs-gpios = <&gpio1 7 GPIO_ACTIVE_HIGH>;
 };
 
