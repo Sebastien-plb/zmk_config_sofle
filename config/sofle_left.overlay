@@ -51,22 +51,22 @@
     };
 };
 
-/* --- 4. SPI BUS (Nice!View - Fixed for No Sleep) --- */
+/* --- 4. SPI BUS (Nice!View - No Sleep Mode) --- */
 &spi1 {
     compatible = "nordic,nrf-spim";
     status = "okay";
     
-    /* State 1: Default (Always Active) */
+    /* 1. Define the Active State */
     pinctrl-0 = <&spi1_default>;
     
-    /* State 2: Sleep (DELETED) */
-    /* You must NOT have pinctrl-1 defined if pinctrl-names is only "default" */
-    /* pinctrl-1 = <&spi1_sleep>;  <-- REMOVE THIS LINE */
+    /* 2. NUCLEAR OPTION: Force delete the sleep state */
+    /* This guarantees pinctrl-1 does not exist, fixing the "2 strings" error */
+    /delete-property/ pinctrl-1;
     
-    /* Names: Only 1 state exists now */
+    /* 3. Name the only state that remains */
     pinctrl-names = "default";
     
-    /* CS Pin */
+    /* 4. CS Pin Configuration */
     cs-gpios = <&gpio1 7 GPIO_ACTIVE_HIGH>;
 
     nice_view: ls0xx@0 {
