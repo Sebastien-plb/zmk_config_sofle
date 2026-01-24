@@ -5,12 +5,27 @@
 &left_encoder { status = "disabled"; };
 &right_encoder { status = "disabled"; };
 
-/* Disable the OLED (Critical) */
+/* CONFLICT FIX:
+   The nRF52 cannot run SPI0 (Nice!View) and I2C0 (Trackpad) at the same time.
+   We explicitly DISABLE the default I2C0 bus here.
+*/
 &pro_micro_i2c {
+    status = "disabled";
+};
+
+/* --- 2. SETUP TRACKPAD ON I2C1 (NEW BUS) --- */
+/* We enable I2C1 and assign it to the same pins (D1/D0) used by the trackpad. */
+&i2c1 {
+    compatible = "nordic,nrf-twi";
     status = "okay";
-    oled: ssd1306@3c { status = "disabled"; };
     
-    /* Trackpad Settings */
+    /* Assign pins: SDA=ProMicro 2 (P0.17), SCL=ProMicro 3 (P0.20) 
+       (These are standard Sofle I2C pins) */
+    pinctrl-0 = <&i2c1_default>;
+    pinctrl-1 = <&i2c1_sleep>;
+    pinctrl-names = "default", "sleep";
+    
+    /* Move Trackpad definition HERE */
     tps43: iqs5xx@74 {
         compatible = "azoteq,iqs5xx";
         status = "okay";
@@ -27,11 +42,31 @@
         stationary-threshold = <5>;
         switch-xy;
     };
+
+    /* Ensure OLED is disabled on this bus too */
+    oled: ssd1306@3c {
+        status = "disabled";
+    };
 };
 
-/* --- 2. DEFINE YOUR CUSTOM PIN STATE --- */
+/* --- 3. PIN CONTROL FOR I2C1 --- */
+/* We need to tell the chip to route I2C1 to the correct physical pins */
 &pinctrl {
-    /* We create a custom pin group for your D21/D20 wiring */
+    i2c1_default: i2c1_default {
+        group1 {
+            psels = <NRF_PSEL(TWIM_SDA, 0, 17)>, /* SDA = P0.17 */
+                    <NRF_PSEL(TWIM_SCL, 0, 20)>; /* SCL = P0.20 */
+        };
+    };
+    i2c1_sleep: i2c1_sleep {
+        group1 {
+            psels = <NRF_PSEL(TWIM_SDA, 0, 17)>,
+                    <NRF_PSEL(TWIM_SCL, 0, 20)>;
+            low-power-enable;
+        };
+    };
+
+    /* Custom pins for Nice!View (SPI0) */
     nice_view_custom_pins: nice_view_custom_pins {
         group1 {
             psels = <NRF_PSEL(SPIM_SCK, 0, 31)>,   /* D21 */
@@ -40,25 +75,23 @@
     };
 };
 
-/* --- 3. HIJACK THE NICE!VIEW BUS --- */
-/* The 'nice_view_adapter' created this label. Now we override it. */
+/* --- 4. CONFIGURE NICE!VIEW (ON SPI0) --- */
+/* The 'nice_view_adapter' gives us this label (on SPI0). 
+   We just need to point it to your custom pins. */
 &nice_view_spi {
-    /* Overwrite the hardware pins to use your custom ones */
+    /* Use the Custom D21/D20 Pins */
     pinctrl-0 = <&nice_view_custom_pins>;
     
-    /* NUCLEAR FIX: Delete sleep state to prevent the "Wake Up Crash" */
+    /* DELETE Sleep State (Fixes Master Crash) */
     /delete-property/ pinctrl-1;
     pinctrl-names = "default";
     
-    /* Overwrite the CS Pin to use Pad 107 */
+    /* Use Pad 107 for CS */
     cs-gpios = <&gpio1 7 GPIO_ACTIVE_HIGH>;
 };
 
-/* --- 4. LISTENERS --- */
+/* --- 5. LISTENERS --- */
 / {
     tps43_listener { compatible = "zmk,input-listener"; device = <&tps43>; };
     right_input_listener { compatible = "zmk,input-listener"; device = <&right_trackpad_split>; };
-    
-    /* Note: We do NOT need to define the display or 'chosen' node.
-       The nice_view shield does that automatically! */
 };
