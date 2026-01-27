@@ -11,6 +11,10 @@
 /* DISABLE OLD OLED LABEL */
 &oled { status = "disabled"; };
 
+&uart0 { 
+    status = "disabled"; 
+};
+
 /* --- 2. MOVE TRACKPAD TO I2C1 (Resource 1) --- */
 &i2c1 {
     compatible = "nordic,nrf-twi";
