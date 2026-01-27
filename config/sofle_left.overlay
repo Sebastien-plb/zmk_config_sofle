@@ -4,16 +4,9 @@
 /* --- 1. DISABLE CONFLICTS --- */
 &left_encoder { status = "disabled"; };
 &right_encoder { status = "disabled"; };
-
-/* DISABLE I2C0 (Resource 0) to save it for Nice!View */
 &pro_micro_i2c { status = "disabled"; };
-
-/* DISABLE OLD OLED LABEL */
 &oled { status = "disabled"; };
-
-&uart0 { 
-    status = "disabled"; 
-};
+&uart0 { status = "disabled"; };
 
 /* --- 2. MOVE TRACKPAD TO I2C1 (Resource 1) --- */
 &i2c1 {
@@ -54,18 +47,40 @@
         group1 { psels = <NRF_PSEL(TWIM_SDA, 0, 17)>, <NRF_PSEL(TWIM_SCL, 0, 20)>; low-power-enable; };
     };
 
-    /* Custom Nice!View Pins (D21/D20) */
+    /* Nice!View Active Pins */
     nice_view_custom_pins: nice_view_custom_pins {
-        group1 { psels = <NRF_PSEL(SPIM_SCK, 0, 31)>, <NRF_PSEL(SPIM_MOSI, 0, 29)>; };
+        group1 { 
+            psels = <NRF_PSEL(SPIM_SCK, 0, 31)>, 
+                    <NRF_PSEL(SPIM_MOSI, 0, 29)>; 
+        };
+    };
+
+    /* TRICK: We define a "Sleep" state, but we DO NOT add 'low-power-enable'.
+       We keep the pins exactly the same as active. 
+       This satisfies the compiler but prevents the hardware from sleeping.
+    */
+    nice_view_sleep_pins: nice_view_sleep_pins {
+        group1 { 
+            psels = <NRF_PSEL(SPIM_SCK, 0, 31)>, 
+                    <NRF_PSEL(SPIM_MOSI, 0, 29)>; 
+            /* REMOVED: low-power-enable; */
+        };
     };
 };
 
 /* --- 4. CONFIGURE NICE!VIEW (SPI0) --- */
 &nice_view_spi {
-    /* Use Custom Pins */
+    status = "okay";
+    
+    /* Active State */
     pinctrl-0 = <&nice_view_custom_pins>;
-    /delete-property/ pinctrl-1; /* No Sleep */
-    pinctrl-names = "default";
+    
+    /* Sleep State (Required by Compiler) */
+    pinctrl-1 = <&nice_view_sleep_pins>;
+    
+    /* Must list both names */
+    pinctrl-names = "default", "sleep";
+    
     cs-gpios = <&gpio1 7 GPIO_ACTIVE_HIGH>;
 };
 
