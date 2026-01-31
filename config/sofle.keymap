@@ -10,7 +10,19 @@
 #include <dt-bindings/zmk/rgb.h>
 #include <dt-bindings/zmk/outputs.h>
 
-
+/* --- ZMK STUDIO UNLOCK COMBO --- */
+/ {
+    combos {
+        compatible = "zmk,combos";
+        
+        combo_studio_unlock {
+            timeout-ms = <50>;
+            /* Top Left 3 keys (usually ESC, 1, 2 or TAB, Q, W depending on layout) */
+            key-positions = <0 1 2>; 
+            bindings = <&studio_unlock>;
+        };
+    };
+};
 
 
 / {
