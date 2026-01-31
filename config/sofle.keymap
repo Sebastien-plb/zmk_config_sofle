@@ -16,6 +16,10 @@
     wakeup-source;
 };
 
+&soft_off {
+    hold-time-ms = <5000>; // Only turn off it the key is held for 5 seconds or longer.
+};
+
 / {
     combos {
         compatible = "zmk,combos";
@@ -39,6 +43,19 @@
             timeout-ms = <50>;
             key-positions = <24 25 26>;
             bindings = <&out OUT_TOG>;
+        };
+
+        combo_soft_off_left {
+            timeout-ms = <50>;
+            key-positions = <3 4 5>;    
+            bindings = <&soft_off>;
+        };
+
+        /* 右手 Soft Off: 按下 6 + 7 + 8 */
+        combo_soft_off_right {
+            timeout-ms = <50>;
+            key-positions = <6 7 8>;    
+            bindings = <&soft_off>;
         };
     };
 };
