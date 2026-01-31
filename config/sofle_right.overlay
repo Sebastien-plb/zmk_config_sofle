@@ -64,10 +64,9 @@
 &right_trackpad_split {
     device = <&tps65>;
     
-    /* LOGIC:
-       1. SWAP: Turns "Up (+Y)" into "Right (+X)" -> We reverse this.
-       2. INVERT X: Flips the direction to match your movement.
+/* REMOVED: INPUT_TRANSFORM_XY_SWAP 
+       KEPT: INPUT_TRANSFORM_X_INVERT (Fixes Left/Right direction)
     */
-input-processors = <&zip_xy_transform (INPUT_TRANSFORM_XY_SWAP | INPUT_TRANSFORM_X_INVERT)>,
-                       <&zip_scroll_transform (INPUT_TRANSFORM_XY_SWAP | INPUT_TRANSFORM_X_INVERT)>;
+    input-processors = <&zip_xy_transform (INPUT_TRANSFORM_X_INVERT)>,
+                       <&zip_scroll_transform (INPUT_TRANSFORM_X_INVERT)>;
 };
