@@ -23,7 +23,7 @@
 };
 
 &soft_off {
-    hold-time-ms = <5000>; // Only turn off it the key is held for 5 seconds or longer.
+    hold-time-ms = <0>; // Only turn off it the key is held for 5 seconds or longer.
 };
 
 / {
@@ -57,7 +57,6 @@
             bindings = <&soft_off>;
         };
 
-        /* 右手 Soft Off: 按下 6 + 7 + 8 */
         combo_soft_off_right {
             timeout-ms = <50>;
             key-positions = <6 7 8>;    
@@ -72,7 +71,7 @@
         compatible = "zmk,keymap";
 
         default_layer {
-            display-name = "Layer 0";
+            display-name = "Qwerty";
             // ------------------------------------------------------------------------------------------------------------
             // |  `    |  1  |  2  |  3   |  4   |  5   |                   |  6   |  7    |  8    |  9   |   0   |       |
             // |  ESC  |  Q  |  W  |  E   |  R   |  T   |                   |  Y   |  U    |  I    |  O   |   P   | BKSPC |
