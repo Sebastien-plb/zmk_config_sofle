@@ -12,6 +12,12 @@
 
 
 /* Allow the matrix to wake the keyboard from Soft Off */
+&{/} {
+    chosen {
+        zmk,kscan = &kscan0;
+    };
+};
+
 &kscan0 {
     wakeup-source;
 };
