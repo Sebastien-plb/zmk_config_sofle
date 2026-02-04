@@ -2,9 +2,9 @@
 Trackpad with niceview. Left with niceview and azoteq trackpad tps43, right with azoteq trackpad tps65. 
 Ported zmk studio. Couldnt go to sleep or soft off. Power draw a lot. Looks like new udpdate conflict, [Issue](github.com/zmkfirmware/zmk/issues/3207#issuecomment-3844138976). 
 
-|![6001c9e9a6960cdde87ec664cfc5342](https://github.com/superxc3/zmk_config_sofle/assets/79617315/5729c828-9187-4059-9e90-d32503703dfd)|
+|<img width="1280" height="552" alt="image" src="https://github.com/user-attachments/assets/9af76e19-65f3-45c7-b33f-8658f2535f9c" />|
 |:--:|
-| Sofle LP niceview: 50g choc brown, niceview, cf plate, customised abs case, cfx keycaps white |
+| SoflePLUS2 wireless |
 
 1. Use [Keymap Editor](https://nickcoutsos.github.io/keymap-editor/) to remap the keys.
 2. This is for Sofle with encoders and niceview display.
