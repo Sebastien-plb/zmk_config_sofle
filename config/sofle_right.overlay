@@ -4,8 +4,8 @@
 #include "sofle.dtsi"
 
 /* --- DISABLE ENCODERS (CRITICAL) --- */
-&left_encoder { status = "disabled"; };
-&right_encoder { status = "disabled"; };
+/* &left_encoder { status = "disabled"; };*/
+/* &right_encoder { status = "disabled"; };*/
 
 /* --- 1. DEFINE THE PROCESSOR --- */
 / {
