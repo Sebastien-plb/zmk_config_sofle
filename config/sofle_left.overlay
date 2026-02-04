@@ -2,35 +2,33 @@
 #include "sofle.dtsi"
 
 /* --- 1. DISABLE CONFLICTS --- */
-/* &left_encoder { status = "disabled"; };*/
-/* &right_encoder { status = "disabled"; };*/
 &pro_micro_i2c { status = "disabled"; };
-/* &oled { status = "disabled"; };*/
-/* &uart0 { status = "disabled"; };*/
 
-/* --- 2. MOVE TRACKPAD TO I2C1 (Resource 1) --- */
+/* --- 2. CONFIGURE TRACKPAD ON I2C1 --- */
 &i2c1 {
-    compatible = "nordic,nrf-twi";
+    /* DELETE THIS LINE: compatible = "nordic,nrf-twi"; */
+    /* Let the board use its default driver (nrf-twim) */
+    
     status = "okay";
     
-    /* Map to Standard Pins (SDA=17, SCL=20) */
     pinctrl-0 = <&i2c1_default>;
     pinctrl-1 = <&i2c1_sleep>;
     pinctrl-names = "default", "sleep";
     
-    /* Trackpad Lives Here Now */
     tps43: iqs5xx@74 {
         compatible = "azoteq,iqs5xx";
         status = "okay";
         reg = <0x74>;
         reset-gpios = <&pro_micro 4 GPIO_ACTIVE_LOW>;
         rdy-gpios = <&pro_micro 0 GPIO_ACTIVE_HIGH>;
+        
+        /* Trackpad Settings */
         one-finger-tap;
         press-and-hold;
         press-and-hold-time = <250>;
         two-finger-tap;
         scroll;
-        natural-scroll-x;
+        /* natural-scroll-x; */ /* If this errors, comment it out */
         bottom-beta = <15>;
         stationary-threshold = <5>;
         switch-xy;
@@ -39,7 +37,6 @@
 
 /* --- 3. PIN DEFINITIONS --- */
 &pinctrl {
-    /* I2C1 Pins */
     i2c1_default: i2c1_default {
         group1 { psels = <NRF_PSEL(TWIM_SDA, 0, 17)>, <NRF_PSEL(TWIM_SCL, 0, 20)>; };
     };
@@ -47,7 +44,6 @@
         group1 { psels = <NRF_PSEL(TWIM_SDA, 0, 17)>, <NRF_PSEL(TWIM_SCL, 0, 20)>; low-power-enable; };
     };
 
-    /* Nice!View Active Pins */
     nice_view_custom_pins: nice_view_custom_pins {
         group1 { 
             psels = <NRF_PSEL(SPIM_SCK, 0, 31)>, 
@@ -55,10 +51,6 @@
         };
     };
 
-    /* TRICK: We define a "Sleep" state, but we DO NOT add 'low-power-enable'.
-       We keep the pins exactly the same as active. 
-       This satisfies the compiler but prevents the hardware from sleeping.
-    */
     nice_view_sleep_pins: nice_view_sleep_pins {
         group1 { 
             psels = <NRF_PSEL(SPIM_SCK, 0, 31)>, 
@@ -68,25 +60,21 @@
     };
 };
 
-/* --- 4. CONFIGURE NICE!VIEW (SPI0) --- */
-/* &nice_view_spi { */ main update
+/* --- 4. CONFIGURE NICE!VIEW (SPI) --- */
 &pro_micro_spi {
     status = "okay";
-    
-    /* Active State */
     pinctrl-0 = <&nice_view_custom_pins>;
-    
-    /* Sleep State (Required by Compiler) */
     pinctrl-1 = <&nice_view_sleep_pins>;
-    
-    /* Must list both names */
     pinctrl-names = "default", "sleep";
     
+    /* Ensure this matches your Nice!View Adapter CS pin */
     cs-gpios = <&gpio1 7 GPIO_ACTIVE_HIGH>;
 };
 
 /* --- 5. LISTENERS --- */
 / {
     tps43_listener { compatible = "zmk,input-listener"; device = <&tps43>; };
-    right_input_listener { compatible = "zmk,input-listener"; device = <&right_trackpad_split>; };
+    
+    /* REMOVE THIS LINE IF COMPILING FOR OLD VERSION */
+    /* right_input_listener { compatible = "zmk,input-listener"; device = <&right_trackpad_split>; }; */
 };
