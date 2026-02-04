@@ -69,7 +69,8 @@
 };
 
 /* --- 4. CONFIGURE NICE!VIEW (SPI0) --- */
-&nice_view_spi {
+/* &nice_view_spi { */ main update
+&pro_micro_spi {
     status = "okay";
     
     /* Active State */
