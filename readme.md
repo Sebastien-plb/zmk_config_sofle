@@ -1,5 +1,7 @@
 # ZMK Config for Sofle
-Trackpad with niceview. Left with azoteq trackpad tps43, right with azoteq trackpad tps65. 
+Trackpad with niceview. Left with niceview and azoteq trackpad tps43, right with azoteq trackpad tps65. 
+Ported zmk studio. Couldnt go to sleep or soft off. Power draw a lot. Looks like new udpdate conflict, [Issue](github.com/zmkfirmware/zmk/issues/3207#issuecomment-3844138976). 
+
 |![6001c9e9a6960cdde87ec664cfc5342](https://github.com/superxc3/zmk_config_sofle/assets/79617315/5729c828-9187-4059-9e90-d32503703dfd)|
 |:--:|
 | Sofle LP niceview: 50g choc brown, niceview, cf plate, customised abs case, cfx keycaps white |
